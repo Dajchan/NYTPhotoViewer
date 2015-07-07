@@ -313,6 +313,15 @@ static const UIEdgeInsets NYTPhotosViewControllerCloseButtinImageInsets = {3, 0,
     [self.notificationCenter postNotificationName:NYTPhotoViewControllerPhotoImageUpdatedNotification object:photo];
 }
 
+- (void)setPhotos:(NSArray *)photos {
+    [self setPhotos:photos displayPhoto:nil animated:NO];
+}
+
+- (void)setPhotos:(NSArray *)photos displayPhoto:(id <NYTPhoto>)photo animated:(BOOL)animated {
+    self.dataSource = [[NYTPhotosDataSource alloc] initWithPhotos:photos];
+    [self displayPhoto:photo animated:animated];
+}
+
 #pragma mark - Gesture Recognizers
 
 - (void)didSingleTapWithGestureRecognizer:(UITapGestureRecognizer *)tapGestureRecognizer {

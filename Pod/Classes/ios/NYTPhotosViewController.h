@@ -104,6 +104,21 @@ extern NSString * const NYTPhotosViewControllerDidDismissNotification;
  */
 - (void)updateImageForPhoto:(id <NYTPhoto>)photo;
 
+/**
+ *  Update the photos to display.
+ *
+ *  @param photos An array of objects conforming to the `NYTPhoto` protocol.
+ */
+- (void)setPhotos:(NSArray *)photos;
+
+/**
+ *  Update the photos to display.
+ *
+ *  @param photos An array of objects conforming to the `NYTPhoto` protocol.
+ *  @param photo The photo to display.
+ */
+- (void)setPhotos:(NSArray *)photos displayPhoto:(id <NYTPhoto>)photo animated:(BOOL)animated;
+
 @end
 
 /**
