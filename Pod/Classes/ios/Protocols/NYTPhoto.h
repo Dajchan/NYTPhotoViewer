@@ -38,4 +38,10 @@
  */
 @property (nonatomic, readonly) NSAttributedString *attributedCaptionCredit;
 
+/**
+ *  The URL to an optional movie source.
+ */
+@property (nonatomic, readonly) NSURL *movieURL;
+
+
 @end

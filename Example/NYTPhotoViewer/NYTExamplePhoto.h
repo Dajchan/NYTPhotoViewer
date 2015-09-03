@@ -18,5 +18,6 @@
 @property (nonatomic) NSAttributedString *attributedCaptionTitle;
 @property (nonatomic) NSAttributedString *attributedCaptionSummary;
 @property (nonatomic) NSAttributedString *attributedCaptionCredit;
+@property (nonatomic) NSURL *movieURL;
 
 @end

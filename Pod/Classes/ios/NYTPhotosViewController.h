@@ -172,6 +172,16 @@ extern NSString * const NYTPhotosViewControllerDidDismissNotification;
 - (UIView *)photosViewController:(NYTPhotosViewController *)photosViewController loadingViewForPhoto:(id <NYTPhoto>)photo;
 
 /**
+*  Returns a view to display for photos with a MovieURL. Can be any `UIBUtton` object, but is expected to respond to `sizeToFit` appropriately. This view will be sized and centered in the blank area, and hidden when the movie starts playing.
+*
+*  @param photosViewController The `NYTPhotosViewController` instance that sent the delegate message.
+*  @param photo                The photo object over which to display the playback button.
+*
+*  @return A button to display for photos with a MovieURL. Return `nil` to show a default button with ▶ as text.
+*/
+- (UIButton *)photosViewController:(NYTPhotosViewController *)photosViewController playButtonForPhoto:(id <NYTPhoto>)photo;
+
+/**
  *  Returns the view from which to animate for a given object conforming to the `NYTPhoto` protocol.
  *
  *  @param photosViewController The `NYTPhotosViewController` instance that sent the delegate message.
@@ -219,5 +229,15 @@ extern NSString * const NYTPhotosViewControllerDidDismissNotification;
  *  @param activityType         The activity type that was successfully shared.
  */
 - (void)photosViewController:(NYTPhotosViewController *)photosViewController actionCompletedWithActivityType:(NSString *)activityType;
+
+/**
+ * Called when a playable Photo is displayed. If yes the playback is started automatically.
+ *
+ *  @param photosViewController The `NYTPhotosViewController` instance that sent the delegate message.
+ *  @param photo                The photo being displayed.
+ *
+ *  @return `YES` if the playback should start automatically.
+ */
+- (BOOL)photosViewController:(NYTPhotosViewController *)photosViewController automaticStartPlaybackForPhoto:(id <NYTPhoto>)photo;
 
 @end

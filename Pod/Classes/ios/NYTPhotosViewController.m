@@ -410,7 +410,18 @@ static const UIEdgeInsets NYTPhotosViewControllerCloseButtinImageInsets = {3, 0,
             loadingView = [self.delegate photosViewController:self loadingViewForPhoto:photo];
         }
         
-        NYTPhotoViewController *photoViewController = [[NYTPhotoViewController alloc] initWithPhoto:photo loadingView:loadingView notificationCenter:self.notificationCenter];
+        UIButton *playButton;
+        if ([photo movieURL]) {
+            if ([self.delegate respondsToSelector:@selector(photosViewController:playButtonForPhoto:)]) {
+                playButton = [self.delegate photosViewController:self playButtonForPhoto:photo];
+            }
+
+        }
+        
+        NYTPhotoViewController *photoViewController = [[NYTPhotoViewController alloc] initWithPhoto:photo
+                                                                                        loadingView:loadingView
+                                                                                         playButton:playButton
+                                                                                 notificationCenter:self.notificationCenter];
         photoViewController.delegate = self;
         [self.singleTapGestureRecognizer requireGestureRecognizerToFail:photoViewController.doubleTapGestureRecognizer];
 
@@ -428,6 +439,17 @@ static const UIEdgeInsets NYTPhotosViewControllerCloseButtinImageInsets = {3, 0,
 - (void)didNavigateToPhoto:(id <NYTPhoto>)photo {
     if ([self.delegate respondsToSelector:@selector(photosViewController:didNavigateToPhoto:atIndex:)]) {
         [self.delegate photosViewController:self didNavigateToPhoto:photo atIndex:[self.dataSource indexOfPhoto:photo]];
+        
+        BOOL automaticPlayback = false;
+        
+        if ([photo movieURL]) {
+            if ([self.delegate respondsToSelector:@selector(photosViewController:automaticStartPlaybackForPhoto:)]) {
+                automaticPlayback = [self.delegate photosViewController:self automaticStartPlaybackForPhoto:photo];
+            }
+        }
+        if (automaticPlayback) {
+            [self.currentPhotoViewController play];
+        }
     }
     
     [[NSNotificationCenter defaultCenter] postNotificationName:NYTPhotosViewControllerDidNavigateToPhotoNotification object:self];

@@ -61,6 +61,7 @@ static const NSUInteger NYTViewControllerCustomMaxZoomScalePhotoIndex = 5;
         
         if (i == NYTViewControllerCustomEverythingPhotoIndex) {
             photo.placeholderImage = [UIImage imageNamed:@"NYTimesBuildingPlaceholder"];
+            photo.movieURL = [NSURL URLWithString:@"https://d1zucocqrua2yq.cloudfront.net/v2/download/50b6675694a940db6d000001/media-54baa589e4b0b32b7a65b35100000040/mobile_legacy.mp4"];
         }
         
         photo.attributedCaptionTitle = [[NSAttributedString alloc] initWithString:@(i + 1).stringValue attributes:@{NSForegroundColorAttributeName: [UIColor whiteColor]}];
@@ -131,6 +132,10 @@ static const NSUInteger NYTViewControllerCustomMaxZoomScalePhotoIndex = 5;
 
 - (void)photosViewControllerDidDismiss:(NYTPhotosViewController *)photosViewController {
     NSLog(@"Did Dismiss Photo Viewer: %@", photosViewController);
+}
+
+- (BOOL)photosViewController:(NYTPhotosViewController *)photosViewController automaticStartPlaybackForPhoto:(id<NYTPhoto>)photo {
+    return true;
 }
 
 @end
