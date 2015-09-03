@@ -88,6 +88,12 @@ NSString * const NYTPhotoViewControllerPhotoImageUpdatedNotification = @"NYTPhot
     }
 }
 
+- (void)viewDidAppear:(BOOL)animated {
+    if ([self.delegate respondsToSelector:@selector(photoViewController:didShowPhoto:)]) {
+        [self.delegate photoViewController:self didShowPhoto:self.photo];
+    }
+}
+
 
 #pragma mark - NYTPhotoViewController
 

@@ -71,4 +71,12 @@ extern NSString * const NYTPhotoViewControllerPhotoImageUpdatedNotification;
  */
 - (void)photoViewController:(NYTPhotoViewController *)photoViewController didLongPressWithGestureRecognizer:(UILongPressGestureRecognizer *)longPressGestureRecognizer;
 
+/**
+ *  Called on viewDidAppear.
+ *
+ *  @param photoViewController        The `NYTPhotoViewController` instance that sent the delegate message.
+ *  @param phot                       The photo displayed by the Controller.
+ */
+- (void)photoViewController:(NYTPhotoViewController *)photoViewController didShowPhoto:(id <NYTPhoto>)photo;
+
 @end

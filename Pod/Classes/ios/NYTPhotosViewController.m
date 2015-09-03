@@ -439,17 +439,6 @@ static const UIEdgeInsets NYTPhotosViewControllerCloseButtinImageInsets = {3, 0,
 - (void)didNavigateToPhoto:(id <NYTPhoto>)photo {
     if ([self.delegate respondsToSelector:@selector(photosViewController:didNavigateToPhoto:atIndex:)]) {
         [self.delegate photosViewController:self didNavigateToPhoto:photo atIndex:[self.dataSource indexOfPhoto:photo]];
-        
-        BOOL automaticPlayback = false;
-        
-        if ([photo movieURL]) {
-            if ([self.delegate respondsToSelector:@selector(photosViewController:automaticStartPlaybackForPhoto:)]) {
-                automaticPlayback = [self.delegate photosViewController:self automaticStartPlaybackForPhoto:photo];
-            }
-        }
-        if (automaticPlayback) {
-            [self.currentPhotoViewController play];
-        }
     }
     
     [[NSNotificationCenter defaultCenter] postNotificationName:NYTPhotosViewControllerDidNavigateToPhotoNotification object:self];
@@ -493,6 +482,20 @@ static const UIEdgeInsets NYTPhotosViewControllerCloseButtinImageInsets = {3, 0,
         targetRect.origin = [longPressGestureRecognizer locationInView:longPressGestureRecognizer.view];
         [menuController setTargetRect:targetRect inView:longPressGestureRecognizer.view];
         [menuController setMenuVisible:YES animated:YES];
+    }
+}
+
+// as the UIPageViewControllerDelegate does not tell every view-appearance (especially the first, or other not animating appearances) to its delegate.
+- (void)photoViewController:(NYTPhotoViewController *)photoViewController didShowPhoto:(id<NYTPhoto>)photo {
+    BOOL automaticPlayback = false;
+    
+    if ([photo movieURL]) {
+        if ([self.delegate respondsToSelector:@selector(photosViewController:automaticStartPlaybackForPhoto:)]) {
+            automaticPlayback = [self.delegate photosViewController:self automaticStartPlaybackForPhoto:photo];
+        }
+    }
+    if (automaticPlayback) {
+        [photoViewController play];
     }
 }
 
