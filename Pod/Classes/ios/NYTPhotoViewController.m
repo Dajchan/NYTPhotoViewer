@@ -76,6 +76,9 @@ NSString * const NYTPhotoViewControllerPhotoImageUpdatedNotification = @"NYTPhot
         self.loadingView.hidden = false;
     }
     self.playButton.center = CGPointMake(CGRectGetMidX(self.view.bounds), CGRectGetMidY(self.view.bounds));
+    if (self.moviePlayer) {
+        self.moviePlayer.view.frame = self.view.bounds;
+    }
 }
 
 - (void)viewDidDisappear:(BOOL)animated {
@@ -186,15 +189,24 @@ NSString * const NYTPhotoViewControllerPhotoImageUpdatedNotification = @"NYTPhot
     if (!self.moviePlayer && self.photo.movieURL) {
         self.moviePlayer = [[MPMoviePlayerController alloc] initWithContentURL:self.photo.movieURL];
         self.moviePlayer.shouldAutoplay = YES;
-        self.moviePlayer.controlStyle = MPMediaTypeAnyVideo;
+        self.moviePlayer.controlStyle = MPMovieControlStyleNone;
         UIView * videoView = self.moviePlayer.view;
+        
         
         self.scalingImageView.hidden = true;
         [self.view addSubview:videoView];
         videoView.frame = self.view.bounds;
+        videoView.userInteractionEnabled = false;
         
-         [self.moviePlayer prepareToPlay];
+        [self.moviePlayer setFullscreen:false];
+        [self.moviePlayer prepareToPlay];
         [self.moviePlayer play];
+        
+//        NSLog(@"%@", videoView.gestureRecognizers);
+//        
+//        NSLog(@"%@", [videoView.subviews[0] gestureRecognizers]);
+        
+        
     }
 }
 
