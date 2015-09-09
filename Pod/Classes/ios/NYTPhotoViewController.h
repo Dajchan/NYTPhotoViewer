@@ -7,7 +7,9 @@
 //
 
 @import UIKit;
+@import MediaPlayer;
 #import "NYTPhotoContainer.h"
+
 
 @class NYTScalingImageView;
 
@@ -43,6 +45,11 @@ extern NSString * const NYTPhotoViewControllerPhotoImageUpdatedNotification;
  *  The object that acts as the photo view controller's delegate.
  */
 @property (nonatomic, weak) id <NYTPhotoViewControllerDelegate> delegate;
+
+/**
+ * The playerController streaming/playing the playable images/movies.
+ */
+@property (nonatomic, readonly) MPMoviePlayerController * moviePlayer;
 
 /**
  *  The designated initializer that takes the photo and activity view.

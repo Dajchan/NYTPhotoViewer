@@ -15,6 +15,7 @@
 #import "NYTPhoto.h"
 #import "NYTPhotosOverlayView.h"
 #import "NYTPhotoCaptionView.h"
+#import "NYTMediaControlsView.h"
 
 NSString * const NYTPhotosViewControllerDidNavigateToPhotoNotification = @"NYTPhotosViewControllerDidNavigateToPhotoNotification";
 NSString * const NYTPhotosViewControllerWillDismissNotification = @"NYTPhotosViewControllerWillDismissNotification";
@@ -213,14 +214,18 @@ static const UIEdgeInsets NYTPhotosViewControllerCloseButtinImageInsets = {3, 0,
     self.overlayView.title = overlayTitle;
     
     UIView *captionView;
-    if ([self.delegate respondsToSelector:@selector(photosViewController:captionViewForPhoto:)]) {
-        captionView = [self.delegate photosViewController:self captionViewForPhoto:self.currentlyDisplayedPhoto];
+    if (self.currentPhotoViewController.moviePlayer) {
+        captionView = [[NYTMediaControlsView alloc] initWithMoviePlayer:self.currentPhotoViewController.moviePlayer];
+    } else {
+        if ([self.delegate respondsToSelector:@selector(photosViewController:captionViewForPhoto:)]) {
+            captionView = [self.delegate photosViewController:self captionViewForPhoto:self.currentlyDisplayedPhoto];
+        }
+        
+        if (!captionView) {
+            captionView = [[NYTPhotoCaptionView alloc] initWithAttributedTitle:self.currentlyDisplayedPhoto.attributedCaptionTitle attributedSummary:self.currentlyDisplayedPhoto.attributedCaptionSummary attributedCredit:self.currentlyDisplayedPhoto.attributedCaptionCredit];
+        }
     }
-    
-    if (!captionView) {
-        captionView = [[NYTPhotoCaptionView alloc] initWithAttributedTitle:self.currentlyDisplayedPhoto.attributedCaptionTitle attributedSummary:self.currentlyDisplayedPhoto.attributedCaptionSummary attributedCredit:self.currentlyDisplayedPhoto.attributedCaptionCredit];
-    }
-    
+
     self.overlayView.captionView = captionView;
 }
 

@@ -9,7 +9,6 @@
 #import "NYTPhotoViewController.h"
 #import "NYTPhoto.h"
 #import "NYTScalingImageView.h"
-#import <MediaPlayer/MediaPlayer.h>
 
 NSString * const NYTPhotoViewControllerPhotoImageUpdatedNotification = @"NYTPhotoViewControllerPhotoImageUpdatedNotification";
 
@@ -23,7 +22,6 @@ NSString * const NYTPhotoViewControllerPhotoImageUpdatedNotification = @"NYTPhot
 @property (nonatomic) UITapGestureRecognizer *doubleTapGestureRecognizer;
 @property (nonatomic) UILongPressGestureRecognizer *longPressGestureRecognizer;
 @property (nonatomic) UIButton *playButton;
-@property (nonatomic) MPMoviePlayerController * moviePlayer;
 
 @end
 
@@ -73,7 +71,12 @@ NSString * const NYTPhotoViewControllerPhotoImageUpdatedNotification = @"NYTPhot
         self.loadingView.hidden = true;
     } else {
         self.playButton.hidden = true;
-        self.loadingView.hidden = false;
+        if (self.photo.image) {
+            self.loadingView.hidden = true;
+        } else {
+            self.loadingView.hidden = false;
+        }
+        
     }
     self.playButton.center = CGPointMake(CGRectGetMidX(self.view.bounds), CGRectGetMidY(self.view.bounds));
     if (self.moviePlayer) {
@@ -84,10 +87,7 @@ NSString * const NYTPhotoViewControllerPhotoImageUpdatedNotification = @"NYTPhot
 - (void)viewDidDisappear:(BOOL)animated {
     [super viewDidDisappear:animated];
     if (self.moviePlayer) {
-        [self.moviePlayer stop];
-        [self.moviePlayer.view removeFromSuperview];
-        self.scalingImageView.hidden = false;
-        self.moviePlayer = nil;
+        [self.moviePlayer pause];
     }
 }
 
@@ -117,6 +117,7 @@ NSString * const NYTPhotoViewControllerPhotoImageUpdatedNotification = @"NYTPhot
         
         if (photo.movieURL) {
             [self setupPlayButton:playButton];
+            [self setupPlayer];
         }
         
         _notificationCenter = notificationCenter;
@@ -181,32 +182,29 @@ NSString * const NYTPhotoViewControllerPhotoImageUpdatedNotification = @"NYTPhot
 
 #pragma mark - Movie playback
 
+- (void)setupPlayer {
+    if (!self.moviePlayer && self.photo.movieURL) {
+        _moviePlayer = [[MPMoviePlayerController alloc] initWithContentURL:self.photo.movieURL];
+        self.moviePlayer.shouldAutoplay = YES;
+        self.moviePlayer.controlStyle = MPMovieControlStyleNone;
+        [self.moviePlayer setFullscreen:false];
+        [self.moviePlayer prepareToPlay];
+    }
+}
+
 - (void)play {
     [self playMovie:nil];
 }
 
 - (void)playMovie:(id)sender {
-    if (!self.moviePlayer && self.photo.movieURL) {
-        self.moviePlayer = [[MPMoviePlayerController alloc] initWithContentURL:self.photo.movieURL];
-        self.moviePlayer.shouldAutoplay = YES;
-        self.moviePlayer.controlStyle = MPMovieControlStyleNone;
+    if (self.moviePlayer) {
         UIView * videoView = self.moviePlayer.view;
-        
-        
-        self.scalingImageView.hidden = true;
-        [self.view addSubview:videoView];
-        videoView.frame = self.view.bounds;
-        videoView.userInteractionEnabled = false;
-        
-        [self.moviePlayer setFullscreen:false];
-        [self.moviePlayer prepareToPlay];
-        [self.moviePlayer play];
-        
-//        NSLog(@"%@", videoView.gestureRecognizers);
-//        
-//        NSLog(@"%@", [videoView.subviews[0] gestureRecognizers]);
-        
-        
+        if (!videoView.superview) {
+            self.scalingImageView.hidden = true;
+            [self.view addSubview:videoView];
+            videoView.frame = self.view.bounds;
+            videoView.userInteractionEnabled = false;
+        }
     }
 }
 
