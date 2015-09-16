@@ -204,8 +204,8 @@
 		D8CDD718588A07F65EFC97E3 /* OCMInvocationStub.m in Sources */ = {isa = PBXBuildFile; fileRef = B9259EA232551DA556BEF6BC /* OCMInvocationStub.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		D8EC2EE0938292DEF26EA394 /* NSMethodSignature+OCMAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = C34EE63F2441725BAE7C1B69 /* NSMethodSignature+OCMAdditions.h */; };
 		D9820C3FB72CA3E883C794B6 /* NYTPhotosDataSource.h in Headers */ = {isa = PBXBuildFile; fileRef = FE7D9F49EDE8F22171327D20 /* NYTPhotosDataSource.h */; };
-		DB43DA0D1BA04C0F0043C120 /* NYTMediaControlsView.m in Sources */ = {isa = PBXBuildFile; fileRef = DB43DA0C1BA04C0F0043C120 /* NYTMediaControlsView.m */; };
 		DB4D965D38C629A155F92D11 /* OCMRealObjectForwarder.m in Sources */ = {isa = PBXBuildFile; fileRef = 69F0FC0376CE26BC3950F5B0 /* OCMRealObjectForwarder.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		DBCC58431BA9A4FD009F685F /* NYTMediaControlsView.m in Sources */ = {isa = PBXBuildFile; fileRef = DBCC58421BA9A4FD009F685F /* NYTMediaControlsView.m */; };
 		DC79D46F4D4D676614C38DAA /* OCMReturnValueProvider.h in Headers */ = {isa = PBXBuildFile; fileRef = FA3488EC2BDD028C8EB901C0 /* OCMReturnValueProvider.h */; };
 		DD68A2A3D11BE1C6A3C0B1C3 /* NYTPhotoTransitionAnimator.m in Sources */ = {isa = PBXBuildFile; fileRef = 903209471199CAEE3B42CA19 /* NYTPhotoTransitionAnimator.m */; };
 		DDB89B3EFA729D467B4CEC86 /* OCProtocolMockObject.h in Headers */ = {isa = PBXBuildFile; fileRef = 743F48CD04F7E076541BFC47 /* OCProtocolMockObject.h */; };
@@ -428,8 +428,8 @@
 		D3585DE44F744998B63E2F8E /* Pods-NYTPhotoViewer-SwiftTests-OCMock-dummy.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = "Pods-NYTPhotoViewer-SwiftTests-OCMock-dummy.m"; sourceTree = "<group>"; };
 		D68D0582B96DB4EDB28B7091 /* libPods-NYTPhotoViewer-Swift.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-NYTPhotoViewer-Swift.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		D714BC42AFE98071E83FB55A /* NYTPhotosDataSource.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = NYTPhotosDataSource.m; path = Pod/Classes/ios/NYTPhotosDataSource.m; sourceTree = "<group>"; };
-		DB43DA0B1BA04C0F0043C120 /* NYTMediaControlsView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NYTMediaControlsView.h; sourceTree = "<group>"; };
-		DB43DA0C1BA04C0F0043C120 /* NYTMediaControlsView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NYTMediaControlsView.m; sourceTree = "<group>"; };
+		DBCC58411BA9A4FD009F685F /* NYTMediaControlsView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = NYTMediaControlsView.h; path = Pod/Classes/ios/NYTMediaControlsView.h; sourceTree = "<group>"; };
+		DBCC58421BA9A4FD009F685F /* NYTMediaControlsView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = NYTMediaControlsView.m; path = Pod/Classes/ios/NYTMediaControlsView.m; sourceTree = "<group>"; };
 		DCE4C4A3CC66AFA2646C365C /* NYTPhotosOverlayView.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = NYTPhotosOverlayView.h; path = Pod/Classes/ios/NYTPhotosOverlayView.h; sourceTree = "<group>"; };
 		DE9BD92CACFDFD7DE3D8533B /* NSInvocation+OCMAdditions.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = "NSInvocation+OCMAdditions.m"; path = "Source/OCMock/NSInvocation+OCMAdditions.m"; sourceTree = "<group>"; };
 		DF8B2633864CE2EE3E36A1EA /* Pods-NYTPhotoViewer-SwiftTests-resources.sh */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.script.sh; path = "Pods-NYTPhotoViewer-SwiftTests-resources.sh"; sourceTree = "<group>"; };
@@ -623,13 +623,13 @@
 		47299642D8B9EE530BB811E3 /* NYTPhotoViewer */ = {
 			isa = PBXGroup;
 			children = (
+				DBCC58411BA9A4FD009F685F /* NYTMediaControlsView.h */,
+				DBCC58421BA9A4FD009F685F /* NYTMediaControlsView.m */,
 				EB760647CD2C6D6AF095ECD2 /* NYTOperatingSystemCompatibilityUtility.h */,
 				9F58613E0A68B64D461E3280 /* NYTOperatingSystemCompatibilityUtility.m */,
 				1629E9E9F8042A2096E475B3 /* NYTPhoto.h */,
 				BEF933B04E5D228A7A18ADDA /* NYTPhotoCaptionView.h */,
 				33DC27FA73F298AF8E69D7AB /* NYTPhotoCaptionView.m */,
-				DB43DA0B1BA04C0F0043C120 /* NYTMediaControlsView.h */,
-				DB43DA0C1BA04C0F0043C120 /* NYTMediaControlsView.m */,
 				EFA58414A5B2F1CBFC1BECAC /* NYTPhotoContainer.h */,
 				9B2915B5408DB212F1A872B0 /* NYTPhotoDismissalInteractionController.h */,
 				E0A98A7C6AB18D4103E0D87A /* NYTPhotoDismissalInteractionController.m */,
@@ -1339,7 +1339,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				4F27CB1D26F356F78CFD3D06 /* Pods-NYTPhotoViewer-dummy.m in Sources */,
-				DB43DA0D1BA04C0F0043C120 /* NYTMediaControlsView.m in Sources */,
+				DBCC58431BA9A4FD009F685F /* NYTMediaControlsView.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

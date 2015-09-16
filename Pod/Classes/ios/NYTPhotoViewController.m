@@ -84,16 +84,17 @@ NSString * const NYTPhotoViewControllerPhotoImageUpdatedNotification = @"NYTPhot
     }
 }
 
-- (void)viewDidDisappear:(BOOL)animated {
-    [super viewDidDisappear:animated];
-    if (self.moviePlayer) {
-        [self.moviePlayer pause];
+- (void)viewDidAppear:(BOOL)animated {
+    [self setupPlayer];
+    if ([self.delegate respondsToSelector:@selector(photoViewController:didShowPhoto:)]) {
+        [self.delegate photoViewController:self didShowPhoto:self.photo];
     }
 }
 
-- (void)viewDidAppear:(BOOL)animated {
-    if ([self.delegate respondsToSelector:@selector(photoViewController:didShowPhoto:)]) {
-        [self.delegate photoViewController:self didShowPhoto:self.photo];
+- (void)viewWillDisappear:(BOOL)animated {
+    [super viewWillDisappear:animated];
+    if (self.moviePlayer) {
+        [self.moviePlayer stop];
     }
 }
 
@@ -117,7 +118,6 @@ NSString * const NYTPhotoViewControllerPhotoImageUpdatedNotification = @"NYTPhot
         
         if (photo.movieURL) {
             [self setupPlayButton:playButton];
-            [self setupPlayer];
         }
         
         _notificationCenter = notificationCenter;
@@ -188,6 +188,8 @@ NSString * const NYTPhotoViewControllerPhotoImageUpdatedNotification = @"NYTPhot
         self.moviePlayer.shouldAutoplay = YES;
         self.moviePlayer.controlStyle = MPMovieControlStyleNone;
         [self.moviePlayer setFullscreen:false];
+        [self.moviePlayer prepareToPlay];
+    } else if (self.moviePlayer && self.photo.movieURL) {
         [self.moviePlayer prepareToPlay];
     }
 }

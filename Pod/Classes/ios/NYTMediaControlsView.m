@@ -312,5 +312,12 @@ static const CGFloat NYTMediaControlsViewThumbSize = 18;
 //    [self evalState];
 }
 
+- (void)dealloc {
+    if (self.playerController) {
+        [[NSNotificationCenter defaultCenter] removeObserver:self name:MPMoviePlayerPlaybackStateDidChangeNotification object:self.playerController];
+        [[NSNotificationCenter defaultCenter] removeObserver:self name:MPMoviePlayerPlaybackDidFinishNotification object:self.playerController];
+    }
+}
+
 @end
 
