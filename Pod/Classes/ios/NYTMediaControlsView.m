@@ -15,13 +15,12 @@ static const CGFloat NYTMediaControlsViewLabelWidth = 40;
 static const CGFloat NYTMediaControlsViewThumbSize = 18;
 
 @interface NYTMediaControlsView ()
-@property (nonatomic, retain) MPMoviePlayerController * playerController;
+@property (nonatomic, retain) NYTMediaViewController *mediaController;
 @property (nonatomic, retain) UIButton * playButton;
 @property (nonatomic, retain) UIButton * pauseButton;
 @property (nonatomic, retain) UISlider * progressSlider;
 @property (nonatomic, retain) UILabel * timePlayedLabel;
 @property (nonatomic, retain) UILabel * timeLeftLabel;
-@property (nonatomic, retain) NSTimer * playerObservationTimer;
 
 @end
 
@@ -44,17 +43,22 @@ static const CGFloat NYTMediaControlsViewThumbSize = 18;
     return thumbImage;
 }
 
-- (instancetype)initWithMoviePlayer:(MPMoviePlayerController *)player {
+- (instancetype)initWithCoder:(NSCoder *)aDecoder {
+    return [self initWithMediaController:nil];
+}
+
+- (instancetype)initWithFrame:(CGRect)frame {
+    return [self initWithMediaController:nil];
+}
+
+- (instancetype)initWithMediaController:(NYTMediaViewController *)controller {
     self = [super initWithFrame:CGRectZero];
     if (self) {
         self.translatesAutoresizingMaskIntoConstraints = NO;
-        _playerController = player;
+        _mediaController = controller;
+        [_mediaController setControlDelegate:self];
         [self setupSubviews];
         [self evalState];
-        if (player) {
-            [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(playbackDidChange) name:MPMoviePlayerPlaybackStateDidChangeNotification object:player];
-            [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(playbackDidFinish) name:MPMoviePlayerPlaybackDidFinishNotification object:player];
-        }
     }
     return self;
 }
@@ -236,18 +240,17 @@ static const CGFloat NYTMediaControlsViewThumbSize = 18;
 }
 
 - (void)evalState {
-    if (self.playerController.isPreparedToPlay) {
-        
-        if (self.playerController.playbackState == MPMoviePlaybackStatePlaying) {
+    NYTMediaPlaybackState state = [self mediaController].state;
+    if (state > NYTMediaPlaybackStateUnknown) {
+        if (state == NYTMediaPlaybackStatePlaying) {
             self.playButton.hidden = true;
             self.pauseButton.hidden = false;
         } else {
             self.playButton.hidden = false;
             self.pauseButton.hidden = true;
         }
-        
-        NSTimeInterval duration = self.playerController.duration;
-        NSTimeInterval currentTime = self.playerController.currentPlaybackTime;
+        NSTimeInterval duration = self.mediaController.duration;
+        NSTimeInterval currentTime = self.mediaController.currentTime;
         NSTimeInterval timeLeft = duration - currentTime;
         
         [self updateLabel:self.timePlayedLabel time:currentTime];
@@ -262,20 +265,6 @@ static const CGFloat NYTMediaControlsViewThumbSize = 18;
         self.playButton.enabled = false;
         self.pauseButton.hidden = true;
     }
-    [self evalTimer];
-}
-
-- (void)evalTimer {
-    @synchronized(self) {
-        if (self.playerController.playbackState == MPMoviePlaybackStatePlaying) {
-            if (!_playerObservationTimer) {
-                _playerObservationTimer = [NSTimer scheduledTimerWithTimeInterval:1 target:self selector:@selector(evalState) userInfo:nil repeats:YES];
-            }
-        } else {
-            [_playerObservationTimer invalidate];
-            _playerObservationTimer = nil;
-        }
-    }
 }
 
 - (void)updateLabel:(UILabel *)label time:(NSTimeInterval)time {
@@ -285,38 +274,21 @@ static const CGFloat NYTMediaControlsViewThumbSize = 18;
 }
 
 - (void)startPlayback {
-//    NSLog(@"startPlayback");
-    [self.playerController play];
+    [self.mediaController play];
     [self evalState];
 }
 
 - (void)pausePlayback {
-    [self.playerController pause];
-    [self evalState];
-//    NSLog(@"pausePlayback");
-}
-
-- (void)playbackDidChange {
-//    NSLog(@"playbackDidChange");
-    [self evalState];
-}
-
-- (void)playbackDidFinish {
-//    NSLog(@"playbackDidFinish");
+    [self.mediaController pause];
     [self evalState];
 }
 
 - (void)changeTime {
-//    NSLog(@"changeTime: %f", self.progressSlider.value);
-    [self.playerController setCurrentPlaybackTime:self.progressSlider.value];
-//    [self evalState];
+    [self.mediaController seekToTime:self.progressSlider.value];
 }
 
-- (void)dealloc {
-    if (self.playerController) {
-        [[NSNotificationCenter defaultCenter] removeObserver:self name:MPMoviePlayerPlaybackStateDidChangeNotification object:self.playerController];
-        [[NSNotificationCenter defaultCenter] removeObserver:self name:MPMoviePlayerPlaybackDidFinishNotification object:self.playerController];
-    }
+- (void)mediaViewController:(NYTMediaViewController *)mediaViewController wantsControlUpdate:(NYTMediaPlaybackState)newState {
+    [self evalState];
 }
 
 @end

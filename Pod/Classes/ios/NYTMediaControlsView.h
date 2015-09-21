@@ -7,10 +7,10 @@
 //
 
 #import <UIKit/UIKit.h>
-@import MediaPlayer;
+#import "NYTMediaViewController.h"
 
-@interface NYTMediaControlsView : UIView
+@interface NYTMediaControlsView : UIView <NYTMediaControlsDelegate>
 
-- (instancetype)initWithMoviePlayer:(MPMoviePlayerController *)player;
+- (instancetype)initWithMediaController:(NYTMediaViewController *)controller NS_DESIGNATED_INITIALIZER;
 
 @end

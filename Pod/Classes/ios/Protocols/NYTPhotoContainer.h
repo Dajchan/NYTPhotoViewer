@@ -18,4 +18,6 @@
  */
 @property (nonatomic, readonly) id <NYTPhoto> photo;
 
+@property (nonatomic, readonly) UIView *presentingView;
+
 @end

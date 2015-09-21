@@ -16,6 +16,7 @@
 #import "NYTPhotosOverlayView.h"
 #import "NYTPhotoCaptionView.h"
 #import "NYTMediaControlsView.h"
+#import "NYTMediaViewController.h"
 
 NSString * const NYTPhotosViewControllerDidNavigateToPhotoNotification = @"NYTPhotosViewControllerDidNavigateToPhotoNotification";
 NSString * const NYTPhotosViewControllerWillDismissNotification = @"NYTPhotosViewControllerWillDismissNotification";
@@ -25,7 +26,7 @@ static const CGFloat NYTPhotosViewControllerOverlayAnimationDuration = 0.2;
 static const CGFloat NYTPhotosViewControllerInterPhotoSpacing = 16.0;
 static const UIEdgeInsets NYTPhotosViewControllerCloseButtinImageInsets = {3, 0, -3, 0};
 
-@interface NYTPhotosViewController () <UIPageViewControllerDataSource, UIPageViewControllerDelegate, NYTPhotoViewControllerDelegate>
+@interface NYTPhotosViewController () <UIPageViewControllerDataSource, UIPageViewControllerDelegate, NYTPhotoViewControllerDelegate, NYTMediaViewControllerDelegate>
 
 @property (nonatomic) id <NYTPhotosViewControllerDataSource> dataSource;
 @property (nonatomic) UIPageViewController *pageViewController;
@@ -43,7 +44,7 @@ static const UIEdgeInsets NYTPhotosViewControllerCloseButtinImageInsets = {3, 0,
 @property (nonatomic) BOOL shouldHandleLongPress;
 @property (nonatomic) BOOL overlayWasHiddenBeforeTransition;
 
-@property (nonatomic, readonly) NYTPhotoViewController *currentPhotoViewController;
+@property (nonatomic, readonly) UIViewController<NYTPhotoContainer> *currentPhotoViewController;
 @property (nonatomic, readonly) UIView *referenceViewForCurrentPhoto;
 @property (nonatomic, readonly) CGPoint boundsCenterPoint;
 
@@ -82,6 +83,10 @@ static const UIEdgeInsets NYTPhotosViewControllerCloseButtinImageInsets = {3, 0,
 
 #pragma mark - UIViewController
 
+- (instancetype)initWithCoder:(NSCoder *)aDecoder {
+    return [self initWithPhotos:nil];
+}
+
 - (instancetype)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
     return [self initWithPhotos:nil];
 }
@@ -105,7 +110,7 @@ static const UIEdgeInsets NYTPhotosViewControllerCloseButtinImageInsets = {3, 0,
     
     UIView *endingView;
     if (self.currentlyDisplayedPhoto.image || self.currentlyDisplayedPhoto.placeholderImage) {
-        endingView = self.currentPhotoViewController.scalingImageView.imageView;
+        endingView = self.currentPhotoViewController.presentingView;
     }
     
     self.transitionController.endingView = endingView;
@@ -173,13 +178,13 @@ static const UIEdgeInsets NYTPhotosViewControllerCloseButtinImageInsets = {3, 0,
     self.pageViewController.delegate = self;
     self.pageViewController.dataSource = self;
     
-    NYTPhotoViewController *initialPhotoViewController;
+    UIViewController<NYTPhotoContainer> *initialPhotoViewController;
     
     if ([self.dataSource containsPhoto:initialPhoto]) {
-        initialPhotoViewController = [self newPhotoViewControllerForPhoto:initialPhoto];
+        initialPhotoViewController = [self newViewControllerForPhoto:initialPhoto];
     }
     else {
-        initialPhotoViewController = [self newPhotoViewControllerForPhoto:self.dataSource[0]];
+        initialPhotoViewController = [self newViewControllerForPhoto:self.dataSource[0]];
     }
     
     [self setCurrentlyDisplayedViewController:initialPhotoViewController animated:NO];
@@ -214,8 +219,9 @@ static const UIEdgeInsets NYTPhotosViewControllerCloseButtinImageInsets = {3, 0,
     self.overlayView.title = overlayTitle;
     
     UIView *captionView;
-    if (self.currentPhotoViewController.moviePlayer) {
-        captionView = [[NYTMediaControlsView alloc] initWithMoviePlayer:self.currentPhotoViewController.moviePlayer];
+    if ([self.currentPhotoViewController isKindOfClass:[NYTMediaViewController class]]) {
+        NYTMediaViewController *cont = (NYTMediaViewController *)self.currentPhotoViewController;
+        captionView = [[NYTMediaControlsView alloc] initWithMediaController:cont];
     } else {
         if ([self.delegate respondsToSelector:@selector(photosViewController:captionViewForPhoto:)]) {
             captionView = [self.delegate photosViewController:self captionViewForPhoto:self.currentlyDisplayedPhoto];
@@ -310,7 +316,7 @@ static const UIEdgeInsets NYTPhotosViewControllerCloseButtinImageInsets = {3, 0,
         return;
     }
     
-    NYTPhotoViewController *photoViewController = [self newPhotoViewControllerForPhoto:photo];
+    UIViewController<NYTPhotoContainer> *photoViewController = [self newViewControllerForPhoto:photo];
     [self setCurrentlyDisplayedViewController:photoViewController animated:animated];
 }
 
@@ -347,7 +353,7 @@ static const UIEdgeInsets NYTPhotosViewControllerCloseButtinImageInsets = {3, 0,
 - (void)dismissAnimated:(BOOL)animated {
     UIView *startingView;
     if (self.currentlyDisplayedPhoto.image || self.currentlyDisplayedPhoto.placeholderImage) {
-        startingView = self.currentPhotoViewController.scalingImageView.imageView;
+        startingView = self.currentPhotoViewController.presentingView;
     }
     
     self.transitionController.startingView = startingView;
@@ -408,36 +414,39 @@ static const UIEdgeInsets NYTPhotosViewControllerCloseButtinImageInsets = {3, 0,
     }
 }
 
-- (NYTPhotoViewController *)newPhotoViewControllerForPhoto:(id <NYTPhoto>)photo {
+- (UIViewController<NYTPhotoContainer> *)newViewControllerForPhoto:(id <NYTPhoto>)photo {
     if (photo) {
         UIView *loadingView;
         if ([self.delegate respondsToSelector:@selector(photosViewController:loadingViewForPhoto:)]) {
             loadingView = [self.delegate photosViewController:self loadingViewForPhoto:photo];
         }
         
-        UIButton *playButton;
         if ([photo movieURL]) {
+            UIButton *playButton;
             if ([self.delegate respondsToSelector:@selector(photosViewController:playButtonForPhoto:)]) {
                 playButton = [self.delegate photosViewController:self playButtonForPhoto:photo];
             }
-
+            NYTMediaViewController *mediaViewController = [[NYTMediaViewController alloc] initWithPhoto:photo
+                                                                                            loadingView:loadingView
+                                                                                             playButton:playButton
+                                                                                     notificationCenter:self.notificationCenter];
+            mediaViewController.delegate = self;
+            return mediaViewController;
+        } else {
+            NYTPhotoViewController *photoViewController = [[NYTPhotoViewController alloc] initWithPhoto:photo
+                                                                                            loadingView:loadingView
+                                                                                     notificationCenter:self.notificationCenter];
+            photoViewController.delegate = self;
+            [self.singleTapGestureRecognizer requireGestureRecognizerToFail:photoViewController.doubleTapGestureRecognizer];
+            
+            if([self.delegate respondsToSelector:@selector(photosViewController:maximumZoomScaleForPhoto:)]) {
+                CGFloat maximumZoomScale = [self.delegate photosViewController:self maximumZoomScaleForPhoto:photo];
+                photoViewController.scalingImageView.maximumZoomScale = maximumZoomScale;
+            }
+            
+            return photoViewController;
         }
-        
-        NYTPhotoViewController *photoViewController = [[NYTPhotoViewController alloc] initWithPhoto:photo
-                                                                                        loadingView:loadingView
-                                                                                         playButton:playButton
-                                                                                 notificationCenter:self.notificationCenter];
-        photoViewController.delegate = self;
-        [self.singleTapGestureRecognizer requireGestureRecognizerToFail:photoViewController.doubleTapGestureRecognizer];
-
-        if([self.delegate respondsToSelector:@selector(photosViewController:maximumZoomScaleForPhoto:)]) {
-            CGFloat maximumZoomScale = [self.delegate photosViewController:self maximumZoomScaleForPhoto:photo];
-            photoViewController.scalingImageView.maximumZoomScale = maximumZoomScale;
-        }
-
-        return photoViewController;
     }
-    
     return nil;
 }
 
@@ -453,7 +462,7 @@ static const UIEdgeInsets NYTPhotosViewControllerCloseButtinImageInsets = {3, 0,
     return self.currentPhotoViewController.photo;
 }
 
-- (NYTPhotoViewController *)currentPhotoViewController {
+- (UIViewController<NYTPhotoContainer> *)currentPhotoViewController {
     return self.pageViewController.viewControllers.firstObject;
 }
 
@@ -471,12 +480,12 @@ static const UIEdgeInsets NYTPhotosViewControllerCloseButtinImageInsets = {3, 0,
 
 #pragma mark - NYTPhotoViewControllerDelegate
 
-- (void)photoViewController:(NYTPhotoViewController *)photoViewController didLongPressWithGestureRecognizer:(UILongPressGestureRecognizer *)longPressGestureRecognizer {
+- (void)handleLongPressWithGestureRecognizer:(UILongPressGestureRecognizer *)longPressGestureRecognizer forPhoto:(id<NYTPhoto>)photo {
     self.shouldHandleLongPress = NO;
     
     BOOL clientDidHandle = NO;
     if ([self.delegate respondsToSelector:@selector(photosViewController:handleLongPressForPhoto:withGestureRecognizer:)]) {
-        clientDidHandle = [self.delegate photosViewController:self handleLongPressForPhoto:photoViewController.photo withGestureRecognizer:longPressGestureRecognizer];
+        clientDidHandle = [self.delegate photosViewController:self handleLongPressForPhoto:photo withGestureRecognizer:longPressGestureRecognizer];
     }
     
     self.shouldHandleLongPress = !clientDidHandle;
@@ -490,8 +499,18 @@ static const UIEdgeInsets NYTPhotosViewControllerCloseButtinImageInsets = {3, 0,
     }
 }
 
+- (void)photoViewController:(NYTPhotoViewController *)photoViewController didLongPressWithGestureRecognizer:(UILongPressGestureRecognizer *)longPressGestureRecognizer {
+    [self handleLongPressWithGestureRecognizer:longPressGestureRecognizer forPhoto:photoViewController.photo];
+}
+
+#pragma mark - NYTMediaViewControllerDelegate
+
+- (void)mediaViewController:(NYTMediaViewController *)mediaViewController didLongPressWithGestureRecognizer:(UILongPressGestureRecognizer *)longPressGestureRecognizer {
+    [self handleLongPressWithGestureRecognizer:longPressGestureRecognizer forPhoto:mediaViewController.photo];
+}
+
 // as the UIPageViewControllerDelegate does not tell every view-appearance (especially the first, or other not animating appearances) to its delegate.
-- (void)photoViewController:(NYTPhotoViewController *)photoViewController didShowPhoto:(id<NYTPhoto>)photo {
+- (void)mediaViewController:(NYTMediaViewController *)mediaViewController didShowPhoto:(id<NYTPhoto>)photo {
     BOOL automaticPlayback = false;
     
     if ([photo movieURL]) {
@@ -500,20 +519,19 @@ static const UIEdgeInsets NYTPhotosViewControllerCloseButtinImageInsets = {3, 0,
         }
     }
     if (automaticPlayback) {
-        [photoViewController play];
+        [mediaViewController play];
     }
 }
-
 #pragma mark - UIPageViewControllerDataSource
 
 - (UIViewController *)pageViewController:(UIPageViewController *)pageViewController viewControllerBeforeViewController:(UIViewController <NYTPhotoContainer> *)viewController {
     NSUInteger photoIndex = [self.dataSource indexOfPhoto:viewController.photo];
-    return [self newPhotoViewControllerForPhoto:self.dataSource[photoIndex - 1]];
+    return [self newViewControllerForPhoto:self.dataSource[photoIndex - 1]];
 }
 
 - (UIViewController *)pageViewController:(UIPageViewController *)pageViewController viewControllerAfterViewController:(UIViewController <NYTPhotoContainer> *)viewController {
     NSUInteger photoIndex = [self.dataSource indexOfPhoto:viewController.photo];
-    return [self newPhotoViewControllerForPhoto:self.dataSource[photoIndex + 1]];
+    return [self newViewControllerForPhoto:self.dataSource[photoIndex + 1]];
 }
 
 #pragma mark - UIPageViewControllerDelegate

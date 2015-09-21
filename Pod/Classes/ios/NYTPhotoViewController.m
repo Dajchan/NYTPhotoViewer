@@ -21,7 +21,6 @@ NSString * const NYTPhotoViewControllerPhotoImageUpdatedNotification = @"NYTPhot
 @property (nonatomic) NSNotificationCenter *notificationCenter;
 @property (nonatomic) UITapGestureRecognizer *doubleTapGestureRecognizer;
 @property (nonatomic) UILongPressGestureRecognizer *longPressGestureRecognizer;
-@property (nonatomic) UIButton *playButton;
 
 @end
 
@@ -37,8 +36,12 @@ NSString * const NYTPhotoViewControllerPhotoImageUpdatedNotification = @"NYTPhot
 
 #pragma mark - UIViewController
 
+- (instancetype)initWithCoder:(NSCoder *)aDecoder {
+    return [self initWithPhoto:nil loadingView:nil notificationCenter:nil];
+}
+
 - (instancetype)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
-    return [self initWithPhoto:nil loadingView:nil playButton:nil notificationCenter:nil];
+    return [self initWithPhoto:nil loadingView:nil notificationCenter:nil];
 }
 
 - (void)viewDidLoad {
@@ -54,8 +57,6 @@ NSString * const NYTPhotoViewControllerPhotoImageUpdatedNotification = @"NYTPhot
     
     [self.view addGestureRecognizer:self.doubleTapGestureRecognizer];
     [self.view addGestureRecognizer:self.longPressGestureRecognizer];
-    
-    [self.view addSubview:self.playButton];
 }
 
 - (void)viewWillLayoutSubviews {
@@ -66,42 +67,23 @@ NSString * const NYTPhotoViewControllerPhotoImageUpdatedNotification = @"NYTPhot
     [self.loadingView sizeToFit];
     self.loadingView.center = CGPointMake(CGRectGetMidX(self.view.bounds), CGRectGetMidY(self.view.bounds));
     
-    if (self.photo.movieURL) {
-        self.playButton.hidden = false;
+    if (self.photo.image) {
         self.loadingView.hidden = true;
     } else {
-        self.playButton.hidden = true;
-        if (self.photo.image) {
-            self.loadingView.hidden = true;
-        } else {
-            self.loadingView.hidden = false;
-        }
-        
-    }
-    self.playButton.center = CGPointMake(CGRectGetMidX(self.view.bounds), CGRectGetMidY(self.view.bounds));
-    if (self.moviePlayer) {
-        self.moviePlayer.view.frame = self.view.bounds;
+        self.loadingView.hidden = false;
     }
 }
 
 - (void)viewDidAppear:(BOOL)animated {
-    [self setupPlayer];
+    [super viewDidAppear:animated];
     if ([self.delegate respondsToSelector:@selector(photoViewController:didShowPhoto:)]) {
         [self.delegate photoViewController:self didShowPhoto:self.photo];
     }
 }
 
-- (void)viewWillDisappear:(BOOL)animated {
-    [super viewWillDisappear:animated];
-    if (self.moviePlayer) {
-        [self.moviePlayer stop];
-    }
-}
-
-
 #pragma mark - NYTPhotoViewController
 
-- (instancetype)initWithPhoto:(id <NYTPhoto>)photo loadingView:(UIView *)loadingView playButton:(UIButton *)playButton notificationCenter:(NSNotificationCenter *)notificationCenter {
+- (instancetype)initWithPhoto:(id <NYTPhoto>)photo loadingView:(UIView *)loadingView notificationCenter:(NSNotificationCenter *)notificationCenter {
     self = [super initWithNibName:nil bundle:nil];
     
     if (self) {
@@ -114,10 +96,6 @@ NSString * const NYTPhotoViewControllerPhotoImageUpdatedNotification = @"NYTPhot
         
         if (!photo.image) {
             [self setupLoadingView:loadingView];
-        }
-        
-        if (photo.movieURL) {
-            [self setupPlayButton:playButton];
         }
         
         _notificationCenter = notificationCenter;
@@ -137,25 +115,6 @@ NSString * const NYTPhotoViewControllerPhotoImageUpdatedNotification = @"NYTPhot
     }
 }
 
-- (void)setupPlayButton:(UIButton *)playButton {
-    if (!playButton) {
-        playButton = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, 64, 64)];
-        [playButton setTitle:@"▶\U0000FE0E" forState:UIControlStateNormal];
-        [playButton.titleLabel setFont:[UIFont systemFontOfSize:40]];
-        [playButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-        [playButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateHighlighted];
-        [playButton setTitleEdgeInsets:UIEdgeInsetsMake(0, 4, 0, 0)];
-        [playButton.layer setCornerRadius:32];
-        [playButton.layer setBorderColor:[[UIColor whiteColor] CGColor]];
-        [playButton.layer setBorderWidth:2];
-        [playButton setBackgroundColor:[UIColor colorWithWhite:0 alpha:0.5]];
-    } else {
-        [playButton sizeToFit];
-    }
-    [playButton addTarget:self action:@selector(playMovie:) forControlEvents:UIControlEventTouchUpInside];
-    self.playButton = playButton;
-}
-
 - (void)photoImageUpdatedWithNotification:(NSNotification *)notification {
     id <NYTPhoto> photo = notification.object;
     if ([photo conformsToProtocol:@protocol(NYTPhoto)] && [photo isEqual:self.photo]) {
@@ -166,48 +125,13 @@ NSString * const NYTPhotoViewControllerPhotoImageUpdatedNotification = @"NYTPhot
 - (void)updateView {
     UIImage *image = self.photo.image;
     [self.scalingImageView updateImage:image];
-
-    if (self.photo.movieURL) {
-        self.loadingView.hidden = true;
-        self.playButton.hidden = false;
-    } else {
-        self.loadingView.hidden = false;
-        self.playButton.hidden = true;
-    }
-    
     if (image) {
         self.loadingView.hidden = true;
     }
 }
 
-#pragma mark - Movie playback
-
-- (void)setupPlayer {
-    if (!self.moviePlayer && self.photo.movieURL) {
-        _moviePlayer = [[MPMoviePlayerController alloc] initWithContentURL:self.photo.movieURL];
-        self.moviePlayer.shouldAutoplay = YES;
-        self.moviePlayer.controlStyle = MPMovieControlStyleNone;
-        [self.moviePlayer setFullscreen:false];
-        [self.moviePlayer prepareToPlay];
-    } else if (self.moviePlayer && self.photo.movieURL) {
-        [self.moviePlayer prepareToPlay];
-    }
-}
-
-- (void)play {
-    [self playMovie:nil];
-}
-
-- (void)playMovie:(id)sender {
-    if (self.moviePlayer) {
-        UIView * videoView = self.moviePlayer.view;
-        if (!videoView.superview) {
-            self.scalingImageView.hidden = true;
-            [self.view addSubview:videoView];
-            videoView.frame = self.view.bounds;
-            videoView.userInteractionEnabled = false;
-        }
-    }
+- (UIView *)presentingView {
+    return self.scalingImageView.imageView;
 }
 
 #pragma mark - Gesture Recognizers

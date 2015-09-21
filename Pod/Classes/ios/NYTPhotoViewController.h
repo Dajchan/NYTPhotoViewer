@@ -47,11 +47,6 @@ extern NSString * const NYTPhotoViewControllerPhotoImageUpdatedNotification;
 @property (nonatomic, weak) id <NYTPhotoViewControllerDelegate> delegate;
 
 /**
- * The playerController streaming/playing the playable images/movies.
- */
-@property (nonatomic, readonly) MPMoviePlayerController * moviePlayer;
-
-/**
  *  The designated initializer that takes the photo and activity view.
  *
  *  @param photo              The photo object that this view controller manages.
@@ -60,9 +55,7 @@ extern NSString * const NYTPhotoViewControllerPhotoImageUpdatedNotification;
  *
  *  @return A fully initialized object.
  */
-- (instancetype)initWithPhoto:(id <NYTPhoto>)photo loadingView:(UIView *)loadingView playButton:(UIButton *)playButton notificationCenter:(NSNotificationCenter *)notificationCenter NS_DESIGNATED_INITIALIZER;
-
-- (void)play;
+- (instancetype)initWithPhoto:(id <NYTPhoto>)photo loadingView:(UIView *)loadingView notificationCenter:(NSNotificationCenter *)notificationCenter NS_DESIGNATED_INITIALIZER;
 
 @end
 
