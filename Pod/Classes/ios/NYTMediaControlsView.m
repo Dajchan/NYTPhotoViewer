@@ -289,7 +289,7 @@ static const CGFloat NYTMediaControlsViewThumbSize = 18;
 }
 
 - (void)changeTime {
-    [self.mediaController endManualSeek:(int)self.progressSlider.value];
+    [self.mediaController endManualSeek:ceil(self.progressSlider.value)];
 }
 
 - (void)mediaViewController:(NYTMediaViewController *)mediaViewController wantsControlUpdate:(NYTMediaPlaybackState)newState {
