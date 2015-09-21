@@ -25,6 +25,7 @@
 @property (nonatomic) NSNotificationCenter *notificationCenter;
 @property (nonatomic) UILongPressGestureRecognizer *longPressGestureRecognizer;
 @property (nonatomic, strong) id timeObserver;
+@property (nonatomic) BOOL seekSeasionActive;
 
 - (void)updateView;
 - (void)updateControls;
@@ -173,16 +174,16 @@
     } else {
         self.playerView.hidden = false;
         self.previewView.hidden = true;
-        if (state != NYTMediaPlaybackStatePlaying) {
+        if (state == NYTMediaPlaybackStatePlaying || state == NYTMediaPlaybackStateSeeking) {
+            self.playButton.hidden = true;
+            //        self.loadingView.hidden = true;
+        } else {
             self.playButton.hidden = false;
             //        if (!self.photo.image) {
             //            self.loadingView.hidden = false;
             //        } else {
             //            self.loadingView.hidden = true;
             //        }
-        } else {
-            self.playButton.hidden = true;
-            //        self.loadingView.hidden = true;
         }
     }
     
@@ -210,6 +211,9 @@
 }
 
 - (NYTMediaPlaybackState)state {
+    if (self.seekSeasionActive) {
+        return NYTMediaPlaybackStateSeeking;
+    }
     NYTMediaPlaybackState state = NYTMediaPlaybackStateUnknown;
     if (self.player.status == AVPlayerStatusReadyToPlay) {
         if (self.player.rate > 0) {
@@ -252,11 +256,31 @@
 }
 
 - (void)seekToTime:(NSTimeInterval)time {
-    [_player seekToTime:CMTimeMakeWithSeconds(time, 1.0)];
+    [self seekToTime:time toleranceBefore:0 toleranceAfter:0];
 }
 
 - (void)seekToTime:(NSTimeInterval)time toleranceBefore:(NSTimeInterval)toleranceBefore toleranceAfter:(NSTimeInterval)toleranceAfter {
-    [_player seekToTime:CMTimeMakeWithSeconds(time, 1.0) toleranceBefore:kCMTimeZero toleranceAfter:kCMTimeZero];
+    CMTime before = kCMTimeZero;
+    CMTime after = kCMTimeZero;
+    if (toleranceBefore) {
+        before = CMTimeMakeWithSeconds(toleranceBefore, 1.0);
+    }
+    if (toleranceAfter) {
+        after = CMTimeMakeWithSeconds(toleranceAfter, 1.0);
+    }
+    
+    [_player seekToTime:CMTimeMakeWithSeconds(time, 1.0) toleranceBefore:before toleranceAfter:after];
+}
+
+- (void)startManualSeek {
+    self.seekSeasionActive = true;
+    [self pause];
+}
+
+- (void)endManualSeek:(NSTimeInterval)time {
+    [self seekToTime:time];
+    self.seekSeasionActive = false;
+    [self play];
 }
 
 

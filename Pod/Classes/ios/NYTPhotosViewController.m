@@ -331,6 +331,9 @@ static const UIEdgeInsets NYTPhotosViewControllerCloseButtinImageInsets = {3, 0,
 - (void)setPhotos:(NSArray *)photos displayPhoto:(id <NYTPhoto>)photo animated:(BOOL)animated {
     self.dataSource = [[NYTPhotosDataSource alloc] initWithPhotos:photos];
     [self displayPhoto:photo animated:animated];
+    if (!animated) {
+        [self updateOverlayInformation];
+    }
 }
 
 #pragma mark - Gesture Recognizers

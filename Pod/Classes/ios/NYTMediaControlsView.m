@@ -93,6 +93,7 @@ static const CGFloat NYTMediaControlsViewThumbSize = 18;
     self.progressSlider.continuous = false;
     [self.progressSlider setThumbImage:[self class].thumbImage forState:UIControlStateNormal];
     [self.progressSlider addTarget:self action:@selector(changeTime) forControlEvents:UIControlEventValueChanged];
+    [self.progressSlider addTarget:self action:@selector(sliderStart) forControlEvents:UIControlEventTouchDown];
     [self addSubview:self.progressSlider];
     
     self.timeLeftLabel = [[UILabel alloc] init];
@@ -242,7 +243,7 @@ static const CGFloat NYTMediaControlsViewThumbSize = 18;
 - (void)evalState {
     NYTMediaPlaybackState state = [self mediaController].state;
     if (state > NYTMediaPlaybackStateUnknown) {
-        if (state == NYTMediaPlaybackStatePlaying) {
+        if (state == NYTMediaPlaybackStatePlaying || state == NYTMediaPlaybackStateSeeking) {
             self.playButton.hidden = true;
             self.pauseButton.hidden = false;
         } else {
@@ -283,8 +284,12 @@ static const CGFloat NYTMediaControlsViewThumbSize = 18;
     [self evalState];
 }
 
+- (void)sliderStart {
+    [self.mediaController startManualSeek];
+}
+
 - (void)changeTime {
-    [self.mediaController seekToTime:self.progressSlider.value];
+    [self.mediaController endManualSeek:(int)self.progressSlider.value];
 }
 
 - (void)mediaViewController:(NYTMediaViewController *)mediaViewController wantsControlUpdate:(NYTMediaPlaybackState)newState {

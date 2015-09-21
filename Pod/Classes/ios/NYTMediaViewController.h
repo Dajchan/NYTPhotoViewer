@@ -17,6 +17,7 @@ typedef enum : NSUInteger {
     NYTMediaPlaybackStateStopped,
     NYTMediaPlaybackStatePaused,
     NYTMediaPlaybackStatePlaying,
+    NYTMediaPlaybackStateSeeking,
 } NYTMediaPlaybackState;
 
 @protocol NYTPhoto;
@@ -61,6 +62,9 @@ typedef enum : NSUInteger {
 - (void)play;
 - (void)pause;
 - (void)stop;
+- (void)startManualSeek;
+- (void)endManualSeek:(NSTimeInterval)time;
+
 - (NSTimeInterval)duration;
 - (NSTimeInterval)currentTime;
 - (void)seekToTime:(NSTimeInterval)time;
