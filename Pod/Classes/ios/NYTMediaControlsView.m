@@ -250,16 +250,21 @@ static const CGFloat NYTMediaControlsViewThumbSize = 18;
             self.playButton.hidden = false;
             self.pauseButton.hidden = true;
         }
+        
+        self.playButton.enabled = true;
+        
         NSTimeInterval duration = self.mediaController.duration;
         NSTimeInterval currentTime = self.mediaController.currentTime;
         NSTimeInterval timeLeft = duration - currentTime;
         
         [self updateLabel:self.timePlayedLabel time:currentTime];
         [self updateLabel:self.timeLeftLabel time:timeLeft];
-        self.progressSlider.maximumValue = duration;
-        self.progressSlider.minimumValue = 0;
-        self.progressSlider.value = currentTime;
-        self.playButton.enabled = true;
+        
+        if (state != NYTMediaPlaybackStateSeeking) {
+            self.progressSlider.maximumValue = duration;
+            self.progressSlider.minimumValue = 0;
+            self.progressSlider.value = currentTime;
+        }
     } else {
         self.timePlayedLabel.text = @"-:--";
         self.timeLeftLabel.text = @"-:--";
@@ -289,7 +294,12 @@ static const CGFloat NYTMediaControlsViewThumbSize = 18;
 }
 
 - (void)changeTime {
-    [self.mediaController endManualSeek:ceil(self.progressSlider.value)];
+    CGFloat value = ceil(self.progressSlider.value);
+    if (value) {
+        [self.mediaController endManualSeek:value+1];
+    } else {
+        [self.mediaController endManualSeek:value];
+    }
 }
 
 - (void)mediaViewController:(NYTMediaViewController *)mediaViewController wantsControlUpdate:(NYTMediaPlaybackState)newState {
