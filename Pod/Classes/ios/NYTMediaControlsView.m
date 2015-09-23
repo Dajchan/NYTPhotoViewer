@@ -12,7 +12,7 @@ static const CGFloat NYTMediaControlsViewHorizontalMargin = 12.0;
 static const CGFloat NYTMediaControlsViewVerticalMargin = 10;
 static const CGFloat NYTMediaControlsViewButtonSize = 30;
 static const CGFloat NYTMediaControlsViewLabelWidth = 40;
-static const CGFloat NYTMediaControlsViewThumbSize = 18;
+static const CGFloat NYTMediaControlsViewThumbSize = 14;
 
 @interface NYTMediaControlsView ()
 @property (nonatomic, retain) NYTMediaViewController *mediaController;
@@ -88,7 +88,7 @@ static inline UIImage *NYTMediaControlsViewPauseIcon() {
         _mediaController = controller;
         [_mediaController setControlDelegate:self];
         [self setupSubviews];
-        [self evalState];
+        self.alpha = 0;
     }
     return self;
 }
@@ -342,6 +342,11 @@ static inline UIImage *NYTMediaControlsViewPauseIcon() {
 
 - (void)mediaViewController:(NYTMediaViewController *)mediaViewController wantsControlUpdate:(NYTMediaPlaybackState)newState {
     [self evalState];
+    if (self.alpha == 0 && newState == NYTMediaPlaybackStatePlaying) {
+        [UIView animateWithDuration:0.2 animations:^{
+            self.alpha = 1;
+        }];
+    }
 }
 
 @end

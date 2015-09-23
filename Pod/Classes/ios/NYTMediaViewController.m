@@ -66,9 +66,9 @@
     
     [self.notificationCenter addObserver:self selector:@selector(photoImageUpdatedWithNotification:) name:NYTPhotoViewControllerPhotoImageUpdatedNotification object:nil];
     
-//    [self.view addSubview:self.loadingView];
-//    [self.loadingView sizeToFit];
-
+    //    [self.view addSubview:self.loadingView];
+    //    [self.loadingView sizeToFit];
+    
     
     [self.view addSubview:self.playButton];
     [self.playButton sizeToFit];
@@ -82,9 +82,9 @@
     _playerView.frame = self.view.bounds;
     _playerLayer.frame = _playerView.bounds;
     
-//    [self.loadingView sizeToFit];
-//    self.loadingView.center = CGPointMake(CGRectGetMidX(self.view.bounds), CGRectGetMidY(self.view.bounds));
-
+    //    [self.loadingView sizeToFit];
+    //    self.loadingView.center = CGPointMake(CGRectGetMidX(self.view.bounds), CGRectGetMidY(self.view.bounds));
+    
     [self.playButton sizeToFit];
     self.playButton.center = CGPointMake(CGRectGetMidX(self.view.bounds), CGRectGetMidY(self.view.bounds));
     
@@ -170,17 +170,6 @@
     } else {
         self.playerView.hidden = false;
         self.previewView.hidden = true;
-        if (state == NYTMediaPlaybackStatePlaying || state == NYTMediaPlaybackStateSeeking) {
-            self.playButton.hidden = true;
-            //        self.loadingView.hidden = true;
-        } else {
-            self.playButton.hidden = false;
-            //        if (!self.photo.image) {
-            //            self.loadingView.hidden = false;
-            //        } else {
-            //            self.loadingView.hidden = true;
-            //        }
-        }
     }
     
     if ([self.controlDelegate respondsToSelector:@selector(mediaViewController:wantsControlUpdate:)]) {
@@ -196,7 +185,7 @@
 
 - (void)setupPlayer {
     if (!self.player && self.photo.movieURL) {
-
+        
         _player = [[AVPlayer alloc] initWithURL:self.photo.movieURL];
         
         __weak NYTMediaViewController *weakSelf = self;
@@ -225,6 +214,7 @@
 
 - (void)play {
     [_player play];
+    self.playButton.hidden = true;
 }
 
 - (void)pause {
