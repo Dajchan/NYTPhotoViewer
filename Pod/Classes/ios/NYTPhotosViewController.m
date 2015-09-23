@@ -508,9 +508,9 @@ static const UIEdgeInsets NYTPhotosViewControllerCloseButtinImageInsets = {3, 0,
 
 #pragma mark - NYTMediaViewControllerDelegate
 
-- (void)mediaViewController:(NYTMediaViewController *)mediaViewController didLongPressWithGestureRecognizer:(UILongPressGestureRecognizer *)longPressGestureRecognizer {
-    [self handleLongPressWithGestureRecognizer:longPressGestureRecognizer forPhoto:mediaViewController.photo];
-}
+//- (void)mediaViewController:(NYTMediaViewController *)mediaViewController didLongPressWithGestureRecognizer:(UILongPressGestureRecognizer *)longPressGestureRecognizer {
+//    [self handleLongPressWithGestureRecognizer:longPressGestureRecognizer forPhoto:mediaViewController.photo];
+//}
 
 // as the UIPageViewControllerDelegate does not tell every view-appearance (especially the first, or other not animating appearances) to its delegate.
 - (void)mediaViewController:(NYTMediaViewController *)mediaViewController didShowPhoto:(id<NYTPhoto>)photo {

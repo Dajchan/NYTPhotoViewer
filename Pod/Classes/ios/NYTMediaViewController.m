@@ -23,7 +23,6 @@
 @property (nonatomic) AVPlayer *player;
 @property (nonatomic) AVPlayerLayer *playerLayer;
 @property (nonatomic) NSNotificationCenter *notificationCenter;
-@property (nonatomic) UILongPressGestureRecognizer *longPressGestureRecognizer;
 @property (nonatomic, strong) id timeObserver;
 @property (nonatomic) BOOL seekSeasionActive;
 
@@ -69,8 +68,7 @@
     
 //    [self.view addSubview:self.loadingView];
 //    [self.loadingView sizeToFit];
-    
-    [self.view addGestureRecognizer:self.longPressGestureRecognizer];
+
     
     [self.view addSubview:self.playButton];
     [self.playButton sizeToFit];
@@ -281,21 +279,6 @@
     [self seekToTime:time];
     self.seekSeasionActive = false;
     [self play];
-}
-
-
-#pragma mark - Gesture Recognizers
-
-- (void)setupGestureRecognizers {
-    self.longPressGestureRecognizer = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(didLongPressWithGestureRecognizer:)];
-}
-
-- (void)didLongPressWithGestureRecognizer:(UILongPressGestureRecognizer *)recognizer {
-    if ([self.delegate respondsToSelector:@selector(mediaViewController:didLongPressWithGestureRecognizer:)]) {
-        if (recognizer.state == UIGestureRecognizerStateBegan) {
-            [self.delegate mediaViewController:self didLongPressWithGestureRecognizer:recognizer];
-        }
-    }
 }
 
 @end

@@ -77,14 +77,6 @@ typedef enum : NSUInteger {
 @optional
 
 /**
- *  Called when a long press is recognized.
- *
- *  @param mediaViewController        The `NYTMediaViewController` instance that sent the delegate message.
- *  @param longPressGestureRecognizer The long press gesture recognizer that recognized the long press.
- */
-- (void)mediaViewController:(NYTMediaViewController *)mediaViewController didLongPressWithGestureRecognizer:(UILongPressGestureRecognizer *)longPressGestureRecognizer;
-
-/**
  *  Called on viewDidAppear.
  *
  *  @param mediaViewController        The `NYTMediaViewController` instance that sent the delegate message.
