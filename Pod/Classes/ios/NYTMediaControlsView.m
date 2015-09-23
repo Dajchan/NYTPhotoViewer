@@ -106,6 +106,7 @@ static inline UIImage *NYTMediaControlsViewPauseIcon() {
     
     self.timePlayedLabel = [[UILabel alloc] init];
     self.timePlayedLabel.translatesAutoresizingMaskIntoConstraints = NO;
+    self.timePlayedLabel.textAlignment = NSTextAlignmentRight;
     [self addSubview:self.timePlayedLabel];
     
     self.progressSlider = [[UISlider alloc] init];
@@ -118,6 +119,7 @@ static inline UIImage *NYTMediaControlsViewPauseIcon() {
     
     self.timeLeftLabel = [[UILabel alloc] init];
     self.timeLeftLabel.translatesAutoresizingMaskIntoConstraints = NO;
+    self.timeLeftLabel.textAlignment = NSTextAlignmentLeft;
     [self addSubview:self.timeLeftLabel];
     
     [self setupPlayButton];
@@ -134,7 +136,6 @@ static inline UIImage *NYTMediaControlsViewPauseIcon() {
     for (UILabel *lbl in @[self.timePlayedLabel, self.timeLeftLabel]) {
         lbl.font = self.progressLabelFont;
         lbl.textColor = self.progressLabelColor;
-        lbl.textAlignment = NSTextAlignmentRight;
     }
     self.backgroundColor = self.backgroundTintColor;
 }
