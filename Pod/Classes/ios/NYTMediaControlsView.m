@@ -39,7 +39,13 @@ static inline UIImage *NYTMediaControlsViewThumbImage() {
 static inline UIImage *NYTMediaControlsIcon(NSString *iconString) {
     CGRect drawRect = CGRectMake(0,0,NYTMediaControlsViewButtonSize, NYTMediaControlsViewButtonSize);
     UIGraphicsBeginImageContextWithOptions(drawRect.size, NO, [UIScreen mainScreen].scale);
-    [iconString drawInRect:drawRect withAttributes:@{NSFontAttributeName : [UIFont systemFontOfSize:16], NSForegroundColorAttributeName : [UIColor whiteColor]}];
+    NSDictionary *attr = @{NSFontAttributeName : [UIFont systemFontOfSize:16], NSForegroundColorAttributeName : [UIColor whiteColor]};
+    CGRect r = [iconString boundingRectWithSize:drawRect.size options:NSStringDrawingUsesLineFragmentOrigin attributes:attr context:nil];
+    r.size.height = ceil(r.size.height);
+    r.size.width = ceil(r.size.width);
+    r.origin.x = round((drawRect.size.width-r.size.width)/2.0);
+    r.origin.y = round((drawRect.size.height-r.size.height)/2.0);
+    [iconString drawInRect:r withAttributes:@{NSFontAttributeName : [UIFont systemFontOfSize:16], NSForegroundColorAttributeName : [UIColor whiteColor]}];
     UIImage * icon = UIGraphicsGetImageFromCurrentImageContext();
     UIGraphicsEndImageContext();
     return icon;
@@ -55,6 +61,18 @@ static inline UIImage *NYTMediaControlsViewPauseIcon() {
 
 @implementation NYTMediaControlsView
 
++ (void)initialize {
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        [NYTMediaControlsView appearance].progressLabelColor = [UIColor lightTextColor];
+        [NYTMediaControlsView appearance].progressLabelFont = [UIFont fontWithName:@"Courier New" size:11];
+        [NYTMediaControlsView appearance].progressSliderThumb = NYTMediaControlsViewThumbImage();
+        [NYTMediaControlsView appearance].playIcon = NYTMediaControlsViewPlayIcon();
+        [NYTMediaControlsView appearance].pauseIcon = NYTMediaControlsViewPauseIcon();
+        [NYTMediaControlsView appearance].backgroundTintColor = [UIColor colorWithWhite:0 alpha:0.5];
+    });
+}
+
 - (instancetype)initWithCoder:(NSCoder *)aDecoder {
     return [self initWithMediaController:nil];
 }
@@ -69,12 +87,6 @@ static inline UIImage *NYTMediaControlsViewPauseIcon() {
         self.translatesAutoresizingMaskIntoConstraints = NO;
         _mediaController = controller;
         [_mediaController setControlDelegate:self];
-        _progressLabelFont = [UIFont fontWithName:@"Courier New" size:11];
-        _progressLabelColor = [UIColor lightTextColor];
-        _progressSliderThumb = NYTMediaControlsViewThumbImage();
-        _playIcon = NYTMediaControlsViewPlayIcon();
-        _pausIcon = NYTMediaControlsViewPauseIcon();
-        
         [self setupSubviews];
         [self evalState];
     }
@@ -84,13 +96,11 @@ static inline UIImage *NYTMediaControlsViewPauseIcon() {
 - (void)setupSubviews {
     self.playButton = [[UIButton alloc] init];
     self.playButton.translatesAutoresizingMaskIntoConstraints = NO;
-    [self.playButton setImage:self.playIcon forState:UIControlStateNormal];
     [self.playButton addTarget:self action:@selector(startPlayback) forControlEvents:UIControlEventTouchUpInside];
     [self addSubview:self.playButton];
     
     self.pauseButton = [[UIButton alloc] init];
     self.pauseButton.translatesAutoresizingMaskIntoConstraints = NO;
-    [self.pauseButton setImage:self.pausIcon forState:UIControlStateNormal];
     [self.pauseButton addTarget:self action:@selector(pausePlayback) forControlEvents:UIControlEventTouchUpInside];
     [self addSubview:self.pauseButton];
     
@@ -100,8 +110,7 @@ static inline UIImage *NYTMediaControlsViewPauseIcon() {
     
     self.progressSlider = [[UISlider alloc] init];
     self.progressSlider.translatesAutoresizingMaskIntoConstraints = NO;
-    self.progressSlider.continuous = false;
-    [self.progressSlider setThumbImage:self.progressSliderThumb forState:UIControlStateNormal];
+    self.progressSlider.continuous = true;
     [self.progressSlider addTarget:self action:@selector(changeTime) forControlEvents:UIControlEventValueChanged];
     [self.progressSlider addTarget:self action:@selector(sliderEnd) forControlEvents:UIControlEventTouchUpInside|UIControlEventTouchUpOutside];
     [self.progressSlider addTarget:self action:@selector(sliderStart) forControlEvents:UIControlEventTouchDown];
@@ -111,19 +120,23 @@ static inline UIImage *NYTMediaControlsViewPauseIcon() {
     self.timeLeftLabel.translatesAutoresizingMaskIntoConstraints = NO;
     [self addSubview:self.timeLeftLabel];
     
-    for (UILabel *lbl in @[self.timePlayedLabel, self.timeLeftLabel]) {
-        lbl.font = self.progressLabelFont;
-        lbl.textColor = self.progressLabelColor;
-        lbl.textAlignment = NSTextAlignmentRight;
-    }
-    
     [self setupPlayButton];
     [self setupPauseButton];
     [self setupTimePlayedLabel];
     [self setupTimeLeftLabel];
     [self setupProgressSlider];
-    
-    self.backgroundColor = [UIColor colorWithWhite:0 alpha:0.5];
+}
+
+- (void)didMoveToSuperview {
+    [self.playButton setImage:self.playIcon forState:UIControlStateNormal];
+    [self.pauseButton setImage:self.pauseIcon forState:UIControlStateNormal];
+    [self.progressSlider setThumbImage:self.progressSliderThumb forState:UIControlStateNormal];
+    for (UILabel *lbl in @[self.timePlayedLabel, self.timeLeftLabel]) {
+        lbl.font = self.progressLabelFont;
+        lbl.textColor = self.progressLabelColor;
+        lbl.textAlignment = NSTextAlignmentRight;
+    }
+    self.backgroundColor = self.backgroundTintColor;
 }
 
 - (void)setupPlayButton {
@@ -140,7 +153,7 @@ static inline UIImage *NYTMediaControlsViewPauseIcon() {
     NSLayoutConstraint * leftConstraint = [NSLayoutConstraint constraintWithItem:self.playButton
                                                                        attribute:NSLayoutAttributeLeft relatedBy:NSLayoutRelationEqual
                                                                           toItem:self attribute:NSLayoutAttributeLeft
-                                                                      multiplier:1.0 constant:NYTMediaControlsViewHorizontalMargin]; 
+                                                                      multiplier:1.0 constant:NYTMediaControlsViewHorizontalMargin];
     
     NSLayoutConstraint * widthConstraint = [NSLayoutConstraint constraintWithItem:self.playButton
                                                                         attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual
@@ -183,7 +196,7 @@ static inline UIImage *NYTMediaControlsViewPauseIcon() {
     NSLayoutConstraint * leftConstraint = [NSLayoutConstraint constraintWithItem:self.timePlayedLabel
                                                                        attribute:NSLayoutAttributeLeft relatedBy:NSLayoutRelationEqual
                                                                           toItem:self.playButton attribute:NSLayoutAttributeRight
-                                                                      multiplier:1.0 constant:NYTMediaControlsViewHorizontalMargin * 2];
+                                                                      multiplier:1.0 constant:NYTMediaControlsViewHorizontalMargin];
     
     NSLayoutConstraint * heightConstraint = [NSLayoutConstraint constraintWithItem:self.timePlayedLabel
                                                                          attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual

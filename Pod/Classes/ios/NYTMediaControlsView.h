@@ -13,8 +13,9 @@
 @property (nonatomic, strong) UIFont *progressLabelFont UI_APPEARANCE_SELECTOR;
 @property (nonatomic, strong) UIColor *progressLabelColor UI_APPEARANCE_SELECTOR;
 @property (nonatomic, strong) UIImage *playIcon UI_APPEARANCE_SELECTOR;
-@property (nonatomic, strong) UIImage *pausIcon UI_APPEARANCE_SELECTOR;
+@property (nonatomic, strong) UIImage *pauseIcon UI_APPEARANCE_SELECTOR;
 @property (nonatomic, strong) UIImage *progressSliderThumb UI_APPEARANCE_SELECTOR;
+@property (nonatomic, strong) UIColor *backgroundTintColor UI_APPEARANCE_SELECTOR;
 
 - (instancetype)initWithMediaController:(NYTMediaViewController *)controller NS_DESIGNATED_INITIALIZER;
 
