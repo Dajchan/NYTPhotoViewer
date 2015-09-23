@@ -51,6 +51,8 @@ static const NSUInteger NYTViewControllerCustomMaxZoomScalePhotoIndex = 5;
 + (NSArray *)newTestPhotos {
     NSMutableArray *photos = [NSMutableArray array];
     
+//    [NYT
+    
     for (int i = 0; i < 6; i++) {
         NYTExamplePhoto *photo = [[NYTExamplePhoto alloc] init];
         

@@ -24,24 +24,36 @@ static const CGFloat NYTMediaControlsViewThumbSize = 18;
 
 @end
 
-@implementation NYTMediaControlsView
-
-+ (UIImage *)thumbImage {
-    static UIImage *thumbImage;
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        UIGraphicsBeginImageContextWithOptions(CGSizeMake(NYTMediaControlsViewThumbSize+4, NYTMediaControlsViewThumbSize+4), NO, [UIScreen mainScreen].scale);
-        UIBezierPath * path = [UIBezierPath bezierPathWithOvalInRect:CGRectMake(2, 2, NYTMediaControlsViewThumbSize, NYTMediaControlsViewThumbSize)];
-        CGContextRef ctx = UIGraphicsGetCurrentContext();
-        CGContextSetShadowWithColor(ctx, CGSizeMake(0, 0.5), 1, [UIColor colorWithWhite:0 alpha:0.5].CGColor);
-        [[UIColor whiteColor] setFill];
-        [path fill];
-        thumbImage = UIGraphicsGetImageFromCurrentImageContext();
-        UIGraphicsEndImageContext();
-        
-    });
+static inline UIImage *NYTMediaControlsViewThumbImage() {
+    UIGraphicsBeginImageContextWithOptions(CGSizeMake(NYTMediaControlsViewThumbSize+4, NYTMediaControlsViewThumbSize+4), NO, [UIScreen mainScreen].scale);
+    UIBezierPath * path = [UIBezierPath bezierPathWithOvalInRect:CGRectMake(2, 2, NYTMediaControlsViewThumbSize, NYTMediaControlsViewThumbSize)];
+    CGContextRef ctx = UIGraphicsGetCurrentContext();
+    CGContextSetShadowWithColor(ctx, CGSizeMake(0, 0.5), 1, [UIColor colorWithWhite:0 alpha:0.5].CGColor);
+    [[UIColor whiteColor] setFill];
+    [path fill];
+    UIImage * thumbImage = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
     return thumbImage;
 }
+
+static inline UIImage *NYTMediaControlsIcon(NSString *iconString) {
+    CGRect drawRect = CGRectMake(0,0,NYTMediaControlsViewButtonSize, NYTMediaControlsViewButtonSize);
+    UIGraphicsBeginImageContextWithOptions(drawRect.size, NO, [UIScreen mainScreen].scale);
+    [iconString drawInRect:drawRect withAttributes:@{NSFontAttributeName : [UIFont systemFontOfSize:16], NSForegroundColorAttributeName : [UIColor whiteColor]}];
+    UIImage * icon = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    return icon;
+}
+
+static inline UIImage *NYTMediaControlsViewPlayIcon() {
+    return NYTMediaControlsIcon(@"▶\U0000FE0E");
+}
+
+static inline UIImage *NYTMediaControlsViewPauseIcon() {
+    return NYTMediaControlsIcon(@"❚❚");
+}
+
+@implementation NYTMediaControlsView
 
 - (instancetype)initWithCoder:(NSCoder *)aDecoder {
     return [self initWithMediaController:nil];
@@ -57,6 +69,12 @@ static const CGFloat NYTMediaControlsViewThumbSize = 18;
         self.translatesAutoresizingMaskIntoConstraints = NO;
         _mediaController = controller;
         [_mediaController setControlDelegate:self];
+        _progressLabelFont = [UIFont fontWithName:@"Courier New" size:11];
+        _progressLabelColor = [UIColor lightTextColor];
+        _progressSliderThumb = NYTMediaControlsViewThumbImage();
+        _playIcon = NYTMediaControlsViewPlayIcon();
+        _pausIcon = NYTMediaControlsViewPauseIcon();
+        
         [self setupSubviews];
         [self evalState];
     }
@@ -66,23 +84,15 @@ static const CGFloat NYTMediaControlsViewThumbSize = 18;
 - (void)setupSubviews {
     self.playButton = [[UIButton alloc] init];
     self.playButton.translatesAutoresizingMaskIntoConstraints = NO;
-    [self.playButton setTitle:@"▶\U0000FE0E" forState:UIControlStateNormal];
+    [self.playButton setImage:self.playIcon forState:UIControlStateNormal];
     [self.playButton addTarget:self action:@selector(startPlayback) forControlEvents:UIControlEventTouchUpInside];
     [self addSubview:self.playButton];
     
     self.pauseButton = [[UIButton alloc] init];
     self.pauseButton.translatesAutoresizingMaskIntoConstraints = NO;
-    [self.pauseButton setTitle:@"❚❚" forState:UIControlStateNormal];
+    [self.pauseButton setImage:self.pausIcon forState:UIControlStateNormal];
     [self.pauseButton addTarget:self action:@selector(pausePlayback) forControlEvents:UIControlEventTouchUpInside];
     [self addSubview:self.pauseButton];
-    
-    for (UIButton *btn in @[self.playButton, self.pauseButton]) {
-        [btn.titleLabel setFont:[UIFont systemFontOfSize:16]];
-        [btn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-        [btn setTitleColor:[UIColor lightTextColor] forState:UIControlStateHighlighted];
-        [btn setTitleColor:[UIColor lightTextColor] forState:UIControlStateSelected];
-        [btn setTitleColor:[UIColor colorWithWhite:1 alpha:0.5] forState:UIControlStateDisabled];
-    }
     
     self.timePlayedLabel = [[UILabel alloc] init];
     self.timePlayedLabel.translatesAutoresizingMaskIntoConstraints = NO;
@@ -91,8 +101,9 @@ static const CGFloat NYTMediaControlsViewThumbSize = 18;
     self.progressSlider = [[UISlider alloc] init];
     self.progressSlider.translatesAutoresizingMaskIntoConstraints = NO;
     self.progressSlider.continuous = false;
-    [self.progressSlider setThumbImage:[self class].thumbImage forState:UIControlStateNormal];
+    [self.progressSlider setThumbImage:self.progressSliderThumb forState:UIControlStateNormal];
     [self.progressSlider addTarget:self action:@selector(changeTime) forControlEvents:UIControlEventValueChanged];
+    [self.progressSlider addTarget:self action:@selector(sliderEnd) forControlEvents:UIControlEventTouchUpInside|UIControlEventTouchUpOutside];
     [self.progressSlider addTarget:self action:@selector(sliderStart) forControlEvents:UIControlEventTouchDown];
     [self addSubview:self.progressSlider];
     
@@ -101,8 +112,8 @@ static const CGFloat NYTMediaControlsViewThumbSize = 18;
     [self addSubview:self.timeLeftLabel];
     
     for (UILabel *lbl in @[self.timePlayedLabel, self.timeLeftLabel]) {
-        lbl.font = [UIFont fontWithName:@"Courier New" size:11];
-        lbl.textColor = [UIColor lightTextColor];
+        lbl.font = self.progressLabelFont;
+        lbl.textColor = self.progressLabelColor;
         lbl.textAlignment = NSTextAlignmentRight;
     }
     
@@ -255,15 +266,16 @@ static const CGFloat NYTMediaControlsViewThumbSize = 18;
         
         NSTimeInterval duration = self.mediaController.duration;
         NSTimeInterval currentTime = self.mediaController.currentTime;
-        NSTimeInterval timeLeft = duration - currentTime;
-        
-        [self updateLabel:self.timePlayedLabel time:currentTime];
-        [self updateLabel:self.timeLeftLabel time:timeLeft];
+        if (self.progressSlider.maximumValue != duration) {
+            self.progressSlider.maximumValue = duration;
+            [self updateTimeLabels];
+        }
         
         if (state != NYTMediaPlaybackStateSeeking) {
-            self.progressSlider.maximumValue = duration;
-            self.progressSlider.minimumValue = 0;
-            self.progressSlider.value = currentTime;
+            if (currentTime > self.progressSlider.value) {
+                self.progressSlider.value = currentTime;
+                [self updateTimeLabels];
+            }
         }
     } else {
         self.timePlayedLabel.text = @"-:--";
@@ -271,6 +283,14 @@ static const CGFloat NYTMediaControlsViewThumbSize = 18;
         self.playButton.enabled = false;
         self.pauseButton.hidden = true;
     }
+}
+
+- (void)updateTimeLabels {
+    NSTimeInterval duration = self.progressSlider.maximumValue;
+    NSTimeInterval currentTime = self.progressSlider.value;
+    NSTimeInterval timeLeft = duration - currentTime;
+    [self updateLabel:self.timePlayedLabel time:currentTime];
+    [self updateLabel:self.timeLeftLabel time:timeLeft];
 }
 
 - (void)updateLabel:(UILabel *)label time:(NSTimeInterval)time {
@@ -293,13 +313,17 @@ static const CGFloat NYTMediaControlsViewThumbSize = 18;
     [self.mediaController startManualSeek];
 }
 
-- (void)changeTime {
-    CGFloat value = ceil(self.progressSlider.value);
+- (void)sliderEnd {
+    CGFloat value = floor(self.progressSlider.value);
     if (value) {
-        [self.mediaController endManualSeek:value+1];
+        [self.mediaController endManualSeek:value];
     } else {
         [self.mediaController endManualSeek:value];
     }
+}
+
+- (void)changeTime {
+    [self updateTimeLabels];
 }
 
 - (void)mediaViewController:(NYTMediaViewController *)mediaViewController wantsControlUpdate:(NYTMediaPlaybackState)newState {
