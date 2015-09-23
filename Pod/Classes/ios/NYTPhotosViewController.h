@@ -152,6 +152,16 @@ extern NSString * const NYTPhotosViewControllerDidDismissNotification;
 - (void)photosViewControllerDidDismiss:(NYTPhotosViewController *)photosViewController;
 
 /**
+ *  Returns a dictionary to style the title above the photo.
+ *
+ *  @param photosViewController The `NYTPhotosViewController` instance that sent the delegate message.
+ *  @param photo                The photo object over which to display the title.
+ *
+ *  @return A dictionary to style the title above the photo. Return `nil` to use a default styling.
+ */
+- (NSDictionary *)photosViewController:(NYTPhotosViewController *)photosViewController overlayTitleTextAttributesForPhoto:(id <NYTPhoto>)photo;
+
+/**
  *  Returns a view to display over a photo, full width, locked to the bottom, representing the caption for the photo. Can be any `UIView` object, but is expected to respond to `intrinsicContentSize` appropriately to calculate height.
  *
  *  @param photosViewController The `NYTPhotosViewController` instance that sent the delegate message.

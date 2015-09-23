@@ -193,9 +193,13 @@ static const UIEdgeInsets NYTPhotosViewControllerCloseButtinImageInsets = {3, 0,
     [self.pageViewController.view addGestureRecognizer:self.singleTapGestureRecognizer];
 }
 
-- (void)addOverlayView {
+- (NSDictionary *)defaultOverlayViewTitleTextAttributes {
     UIColor *textColor = self.view.tintColor ?: [UIColor whiteColor];
-    self.overlayView.titleTextAttributes = @{NSForegroundColorAttributeName: textColor};
+    return @{NSForegroundColorAttributeName: textColor};
+}
+
+- (void)addOverlayView {
+    self.overlayView.titleTextAttributes = [self defaultOverlayViewTitleTextAttributes];
     
     [self updateOverlayInformation];
     [self.view addSubview:self.overlayView];
@@ -217,6 +221,12 @@ static const UIEdgeInsets NYTPhotosViewControllerCloseButtinImageInsets = {3, 0,
     }
     
     self.overlayView.title = overlayTitle;
+    if ([self.delegate respondsToSelector:@selector(photosViewController:overlayTitleTextAttributesForPhoto:)]) {
+        self.overlayView.titleTextAttributes = [self.delegate photosViewController:self overlayTitleTextAttributesForPhoto:self.currentlyDisplayedPhoto];
+    } else {
+        self.overlayView.titleTextAttributes = [self defaultOverlayViewTitleTextAttributes];
+    }
+    
     
     UIView *captionView;
     if ([self.currentPhotoViewController isKindOfClass:[NYTMediaViewController class]]) {

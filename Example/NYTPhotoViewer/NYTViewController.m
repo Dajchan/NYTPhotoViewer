@@ -120,7 +120,6 @@ static const NSUInteger NYTViewControllerCustomMaxZoomScalePhotoIndex = 5;
     if ([photo isEqual:self.photos[NYTViewControllerCustomEverythingPhotoIndex]]) {
         return @{NSForegroundColorAttributeName: [UIColor grayColor]};
     }
-    
     return nil;
 }
 

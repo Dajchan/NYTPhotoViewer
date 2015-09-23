@@ -125,8 +125,6 @@
         
         _notificationCenter = notificationCenter;
         
-        [self setupGestureRecognizers];
-        
         [self setupPlayer];
     }
     
