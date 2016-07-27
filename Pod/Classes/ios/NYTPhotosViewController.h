@@ -228,9 +228,9 @@ extern NSString * const NYTPhotosViewControllerDidDismissNotification;
  *  @param photosViewController The `NYTPhotosViewController` instance that sent the delegate message.
  *  @param photo                The photo being displayed when the action button was tapped.
  *
- *  @return `YES` if the action button tap was handled by the client, `NO` if the default `UIActivityViewController` is desired.
+ *  @return The (mixed-type) array of activity items (such as image, URL, title, text) for the photo
  */
-- (BOOL)photosViewController:(NYTPhotosViewController *)photosViewController handleActionButtonTappedForPhoto:(id <NYTPhoto>)photo;
+- (NSArray*)photosViewController:(NYTPhotosViewController *)photosViewController activityItemsForPhoto:(id <NYTPhoto>)photo;
 
 /**
  *  Called after the default `UIActivityViewController` is presented and successfully completes an action with a specified activity type.
