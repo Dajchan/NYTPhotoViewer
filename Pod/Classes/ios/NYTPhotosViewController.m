@@ -255,7 +255,9 @@ static const UIEdgeInsets NYTPhotosViewControllerCloseButtinImageInsets = {3, 0,
     NSArray * activityItems = nil;
     if ([self.delegate respondsToSelector:@selector(photosViewController:handleActionButtonTappedForPhoto:)]) {
          activityItems = [self.delegate photosViewController:self activityItemsForPhoto:self.currentlyDisplayedPhoto];
-    } else if (self.currentlyDisplayedPhoto.image) {
+    }
+    
+    if (!activityItems.count && self.currentlyDisplayedPhoto.image) {
         activityItems = @[self.currentlyDisplayedPhoto.image];
     }
     
