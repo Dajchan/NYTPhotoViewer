@@ -36,6 +36,7 @@
 #pragma mark - NSObject
 
 - (void)dealloc {
+    [NSNotificationCenter.defaultCenter removeObserver:self];
     [_notificationCenter removeObserver:self];
     if (_timeObserver) {
         [_player removeTimeObserver:_timeObserver];
@@ -126,9 +127,15 @@
         _notificationCenter = notificationCenter;
         
         [self setupPlayer];
+        
+        [NSNotificationCenter.defaultCenter addObserver:self selector:@selector(pause) name:UIApplicationWillResignActiveNotification object:nil];
     }
     
     return self;
+}
+
+-(BOOL)prefersStatusBarHidden {
+    return YES;
 }
 
 - (void)setupLoadingView:(UIView *)loadingView {
