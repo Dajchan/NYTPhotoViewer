@@ -119,6 +119,11 @@ extern NSString * const NYTPhotosViewControllerDidDismissNotification;
  */
 - (void)setPhotos:(NSArray *)photos displayPhoto:(id <NYTPhoto>)photo animated:(BOOL)animated;
 
+/**
+ * Dismiss as if user tapped the done button
+ */
+- (void)dismiss;
+
 @end
 
 /**
