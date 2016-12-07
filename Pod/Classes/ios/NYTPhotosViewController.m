@@ -251,6 +251,10 @@ static const UIEdgeInsets NYTPhotosViewControllerCloseButtinImageInsets = {3, 0,
     [self dismissAnimated:YES];
 }
 
+-(void)dismiss {
+    [self doneButtonTapped:nil];
+}
+
 - (void)actionButtonTapped:(id)sender {
     NSArray * activityItems = nil;
     if ([self.delegate respondsToSelector:@selector(photosViewController:handleActionButtonTappedForPhoto:)]) {
